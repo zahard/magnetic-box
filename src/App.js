@@ -21,12 +21,15 @@ function Game(width, height)
 
 	this.layers = {
 		back:   new Layer( $('back'), width, height, 1),
-		boxes:  new Layer( $('boxes'), width, height, 2)
+		effect:  new Layer( $('effect'), width, height, 2),
+		boxes:  new Layer( $('boxes'), width, height, 3)
 	};
 	
 	//Iages and tiles used in game
 	this.images = {
 		back: $('img-back'),
+		grab: $('img-grab'),
+		box: $('img-box')
 	};
 
 	//YOU CAN KEEP LINKS TO SOUND HERE
@@ -38,7 +41,22 @@ function Game(width, height)
 
 	this.drawBackground();
 
-	//this.animate();
+	this.boxY = 500;
+	this.boxX = 205;
+
+	this.l1 = new Lightning( this.layers.effect,
+		{x:215,y:70},
+		{x:this.boxX+50,y:this.boxY}
+	);
+
+	this.l2 = new Lightning( this.layers.effect,
+		{x:295,y:70},
+		{x:this.boxX+50,y:this.boxY}
+	);
+
+	
+
+	this.animate();
 }
 
 Game.prototype = {
@@ -49,12 +67,36 @@ Game.prototype = {
 
 	MOUSE_HOLDED: false,
 
+	up:true,
+
 	animate: function()
 	{
-		if (this.update())
+		if(this.up)
 		{
-			this.draw();
+			if (this.boxY > 90)
+			{
+				this.boxY -= 4;
+			}else{
+				this.up = false;
+			}
+		}else{
+			if (this.boxY < 500)
+			{
+				this.boxY += 7;
+			}else{
+				this.up = true;
+			}
 		}
+		
+
+		this.drawBox();
+
+		this.l1.pb.y = this.boxY;
+		this.l2.pb.y = this.boxY;
+
+		this.l1.clear();
+		this.l1.boom();
+		this.l2.boom();
 
 		setTimeout(function(){
 			this.animate();
@@ -74,12 +116,7 @@ Game.prototype = {
 
 	drawBackground: function()
 	{
-		//Draw levelx
-		this.layers.back.setProperties({ fillStyle: '#6fbfe8' });
-		this.layers.back.fillRect(
-			0,0,this.width,this.height
-		);
-
+		
 		this.layers.back.drawImage(
 			this.images.back,
 			0,0,
@@ -88,6 +125,26 @@ Game.prototype = {
 			this.width, this.height
 		);
 
+		this.layers.back.drawImage(
+			this.images.grab,
+			0,0,
+			400,140,
+			200,10,
+			300,100
+		);
+
+	},
+
+	drawBox: function()
+	{
+		this.layers.boxes.empty();
+		this.layers.boxes.drawImage(
+			this.images.box,
+			0,0,
+			100,100,
+			this.boxX,this.boxY,
+			100,100
+		);
 	},
 
 	drawTile: function(x,y,tile)
