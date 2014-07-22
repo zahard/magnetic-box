@@ -10,10 +10,8 @@ function Lightning(cxt,a,b) {
 	this.pa = {x:a.x,y:a.y,d:-300,r:5};
 	this.pb = {x:b.x,y:b.y,d:300,r:5};
 
-	this.start = new Circle(this.cxt, this.pa.x, this.pa.y,5,'#fff','#eee');
-	this.end   = new Circle(this.cxt, this.pb.x, this.pb.y,5,'#fff','#eee');
 
-	this.colors = ['#382'];
+	this.colors = ['#fff','cyan'];
 
 }
 
@@ -25,15 +23,11 @@ Lightning.prototype.animate = function()
 Lightning.prototype.boom = function()
 {
 	
-	//this.start.draw();
-	//this.end.draw();
-
-	this.minBeam  = rand(7,18);
+	this.minBeam  = rand(5,10);
 	
-
 	this.strike(this.pa,this.pb,this.colors[0]);
 	this.strike(this.pa,this.pb,this.colors[0], this.randomOpacity());
-	//this.strike(this.pa,this.pb,this.colors[1], this.randomOpacity());
+	this.strike(this.pa,this.pb,this.colors[1], this.randomOpacity());
 }
 
 
@@ -54,7 +48,7 @@ Lightning.prototype.clear = function()
 Lightning.prototype.strike = function(pa,pb,stikeColor)
 {	
 	var opacity = this.randomOpacity();
-	var line = rand(1,3);
+	var line = rand(1,2);
 
 	this.dots = [pa, pb];
 

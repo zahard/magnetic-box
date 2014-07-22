@@ -1,6 +1,7 @@
 
+var Registry = new GameRegistry();
 
-Registry = function()
+function GameRegistry()
 {
     var freeIndex = 0;
 
@@ -53,3 +54,4 @@ Registry = function()
         return self;
     }
 }
+
