@@ -34,7 +34,7 @@ function Game(width, height)
 
 	//YOU CAN KEEP LINKS TO SOUND HERE
 	this.sounds = {
-		//name: $('id-of-audio'),
+		zap: $('audio-electro')
 	};
 	
 	this.addListeners();	
@@ -54,9 +54,20 @@ function Game(width, height)
 		{x:this.boxX+50,y:this.boxY}
 	);
 
-	
-
 	this.animate();
+
+	var duration = this.sounds.zap.duration;
+	this.sounds.zap.addEventListener('timeupdate', function() {
+
+		if(this.currentTime > 0.4)
+		{	
+			this.currentTime = 0;
+	    	this.play();
+		}
+	    
+	}, false);
+
+	this.sounds.zap.play();
 }
 
 Game.prototype = {
