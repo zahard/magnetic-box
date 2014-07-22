@@ -5,6 +5,8 @@ var resources = [
 	'Layer',
 	'Circle',
 	'Lightning',
+    'Grab',
+    
 	'App'
 ];
 

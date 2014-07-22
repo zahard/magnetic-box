@@ -1,7 +1,7 @@
 
 window.onload = function()
 {
-	window.game = new Game(800,600);
+	window.game = new Game(900,640);
 
 	//Fix android browsers bug
 	setTimeout(function(){
@@ -22,40 +22,41 @@ function Game(width, height)
 	this.layers = {
 		back:   new Layer( $('back'), width, height, 1),
 		effect:  new Layer( $('effect'), width, height, 2),
-		boxes:  new Layer( $('boxes'), width, height, 3)
+		grab:  new Layer( $('grab'), width, height, 4),
+		boxes:  new Layer( $('boxes'), width, height, 3),
+		objects:  new Layer( $('objects'), width, height, 8),
 	};
 	
 	//Iages and tiles used in game
 	this.images = {
 		back: $('img-back'),
 		grab: $('img-grab'),
-		box: $('img-box')
+		box: $('img-box'),
+		arrows: {
+			right: $('img-right'),
+			left:  $('img-left'),
+			up:    $('img-up')
+		}
 	};
 
 	//YOU CAN KEEP LINKS TO SOUND HERE
 	this.sounds = {
-		zap: $('audio-electro')
+		//zap: $('audio-electro')
 	};
 	
+
+	this.grab = new Grab(this.layers.grab, this.images.grab, 450);
+
+
 	this.addListeners();	
 
 	this.drawBackground();
 
-	this.boxY = 500;
-	this.boxX = 205;
-
-	this.l1 = new Lightning( this.layers.effect,
-		{x:215,y:70},
-		{x:this.boxX+50,y:this.boxY}
-	);
-
-	this.l2 = new Lightning( this.layers.effect,
-		{x:295,y:70},
-		{x:this.boxX+50,y:this.boxY}
-	);
+	this.draw();
 
 	this.animate();
 
+	/*
 	var duration = this.sounds.zap.duration;
 	this.sounds.zap.addEventListener('timeupdate', function() {
 
@@ -66,8 +67,7 @@ function Game(width, height)
 		}
 	    
 	}, false);
-
-	this.sounds.zap.play();
+	this.sounds.zap.play()*/
 }
 
 Game.prototype = {
@@ -82,40 +82,41 @@ Game.prototype = {
 
 	animate: function()
 	{
-		if(this.up)
+		if (this.update())
 		{
-			if (this.boxY > 90)
-			{
-				this.boxY -= 4;
-			}else{
-				this.up = false;
-			}
-		}else{
-			if (this.boxY < 500)
-			{
-				this.boxY += 7;
-			}else{
-				this.up = true;
-			}
+			this.draw();
 		}
-		
 
-		this.drawBox();
-
-		this.l1.pb.y = this.boxY;
-		this.l2.pb.y = this.boxY;
-
-		this.l1.clear();
-		this.l1.boom();
-		this.l2.boom();
-
-		setTimeout(function(){
+		requestAnimationFrame(function(){
 			this.animate();
-		}.bind(this),1000/60);
+		}.bind(this));
 	},
 
-	click: function(){
-		console.log(this.activePoint)
+	click: function()
+	{
+		if (this.activePoint.x > 450)
+		{
+			if (this.grab.speed <= 0)
+			{
+				this.grab.moveRight();	
+			}
+			else
+			{
+				this.grab.stop();	
+			}
+		} 
+		else 
+		{
+			if (this.grab.speed >= 0)
+			{
+				this.grab.moveLeft();	
+			}
+			else
+			{
+				this.grab.stop();	
+			}
+			
+		}
 	},
 
 
@@ -123,6 +124,27 @@ Game.prototype = {
 	{
 
 		var needRedraw = false;
+
+		if(this.grab.update())
+		{
+			needRedraw = true;
+		}
+
+		return needRedraw;
+	},
+
+	draw: function()
+	{
+
+		this.drawArrows();
+
+		this.drawGrab();
+
+	},
+
+	drawGrab: function()
+	{
+		this.grab.draw();
 	},
 
 	drawBackground: function()
@@ -136,12 +158,21 @@ Game.prototype = {
 			this.width, this.height
 		);
 
-		this.layers.back.drawImage(
-			this.images.grab,
-			0,0,
-			400,140,
-			200,10,
-			300,100
+	},
+
+
+	drawArrows: function()
+	{
+		this.layers.objects.empty();
+
+		this.layers.objects.drawImage(
+			this.images.arrows.left,
+			5,5
+		);
+
+		this.layers.objects.drawImage(
+			this.images.arrows.right,
+			this.width - 64 - 5, 5
 		);
 
 	},
@@ -168,18 +199,6 @@ Game.prototype = {
 			55, 55
 		);
 	},
-
-	draw: function()
-	{
-		var tile;
-		this.layers.squares.empty();
-		for(var i =0; i < this.tiles.length; i++)
-		{
-			tile = this.tiles[i];
-			this.drawTile(tile.x, tile.y, tile);
-		}
-	},
-
 
 	addListeners: function()
 	{	
@@ -212,10 +231,9 @@ Game.prototype = {
 
 	updateActivePoint: function(e)
 	{
-		console.log(e);
 		//Calculate ratio to allow resize canvas and keep track right mouse position related canvas
-		var ratioX = this.wrapper.clientWidth / 800;
-		var ratioY = this.wrapper.clientHeight / 600;
+		var ratioX = this.wrapper.clientWidth / this.width;
+		var ratioY = this.wrapper.clientHeight / this.height;
 		this.activePoint.x =  Math.floor( (e.pageX - this.offsetLeft) / ratioX);
 		this.activePoint.y =  Math.floor( (e.pageY - this.offsetTop)  / ratioY);
 		this.click();
