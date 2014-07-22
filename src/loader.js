@@ -3,10 +3,12 @@ var resources = [
 	'helpers',
 	'KeyboardManager',
 	'Layer',
-	'Circle',
+    'Circle',
+    'Registry',
+    'Arrow',
+	//'GrabButton',
 	'Lightning',
     'Grab',
-    
 	'App'
 ];
 

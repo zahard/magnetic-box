@@ -11,6 +11,9 @@ window.onload = function()
 
 function Game(width, height)
 {
+	var registry = new Registry();
+	registry.add('app',this);
+
 	this.width = width;
 	this.height = height;
 
@@ -47,6 +50,14 @@ function Game(width, height)
 
 	this.grab = new Grab(this.layers.grab, this.images.grab, 450);
 
+	
+
+	this.clickables.push(
+		registry.add('l_arrow',   new Arrow('left') ),
+		registry.add('r_arrow',   new Arrow('right') ),
+		registry.add('up_button', new GrabButton() )
+	);
+
 
 	this.addListeners();	
 
@@ -80,6 +91,8 @@ Game.prototype = {
 
 	up:true,
 
+	clickables: [],
+
 	animate: function()
 	{
 		if (this.update())
@@ -94,6 +107,17 @@ Game.prototype = {
 
 	click: function()
 	{
+		var reg = new Registry();
+		var obj;
+		for(var i = 0; i < this.clickables; i++)
+		{
+			obj = reg.get(this.clickables[i]);
+			if (obj.isClicked(this.activePoint))
+			{
+				obj.click();
+			}
+		}
+
 		if (this.activePoint.x > 450)
 		{
 			if (this.grab.speed <= 0)
