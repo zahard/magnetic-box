@@ -5,33 +5,36 @@ Grab = function(cxt, tile, x)
     this.cxt = cxt;
 
     this.x = x;
-    this.y = 70;
+    this.y = 0;
 
     this.width = 120;
     this.height = 75;
     
     this.speed = 0;
-    this.step = 2;
+    this.step = 1;
 
     this.grabSpeed = 3;
 
-    this.grabLimit = this.y + this.height + 20;
+    this.grabLimit = this.y + this.height;
 
     this.prevFrame = 0;
 
     this.isMagnetOn = false;
 
     this.magnetTarget = null;
+
+    this.arrowOffset = 70;
 }
 
 Grab.prototype.isClicked = function(mouse)
 {
-    var w = 32;
+    var w = this.width/2 - 20;
+    var h = this.height - 20;
     var x =  this.x;
-    var y =  this.y - 32;
+    var y =  this.y;
     
     if (mouse.x >= x - w && mouse.x <= x + w &&
-        mouse.y >= y - w && mouse.y <= y + w)
+        mouse.y >= y  && mouse.y <= y + h )
     {
         return true;
     }
@@ -148,7 +151,7 @@ Grab.prototype.draw = function() {
     this.cxt.drawImage(mag,
         tileX * 128, 0,
         128, 128,
-        this.x - 32, this.y - 64,
+        this.x - 32, this.y + 2,
         64, 64
     )
 };
@@ -161,8 +164,8 @@ Grab.prototype.update = function() {
     {
         needUpdate = true;
         var x = this.x + this.speed;
-        var arrowOffset = 50;
-        if( x <= this.width / 2 + arrowOffset || x >= 900 - this.width / 2 - arrowOffset)
+       
+        if( x <= this.width / 2 +  this.arrowOffset || x >= 900 - this.width / 2 -  this.arrowOffset)
         {
             this.stop();
             needUpdate = false;

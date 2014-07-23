@@ -51,7 +51,7 @@ Arrow.prototype =
             {
                 this.clickCallbacks[i].call(this,this);
             }
-        }
+        }   
     },
 
     onclick: function(f)
@@ -71,7 +71,7 @@ Arrow.prototype =
 
     moveCenterTo: function(center)
     {
-        var offsetFromCenter = 40;
+        var offsetFromCenter = 70;
         if(this.type == 'left')
         {
             this.x = center - this.width - offsetFromCenter;    

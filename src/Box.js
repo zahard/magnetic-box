@@ -15,6 +15,8 @@ function Box(x,y,size) {
     this.maxSpeed = 18;
 
     this.isFalling = true;
+
+    this.angle = 0;
 }
 
 Box.prototype.draw = function()
@@ -44,12 +46,32 @@ Box.prototype.draw = function()
         cxt.restore();
     }
 
-    cxt.drawImage(this.tile,
-        0,0,100,100,
-        this.x - this.size/2, this.y - this.size/2,
-        this.size,this.size
-    );
+    cxt.save();
+    if(this.angle != 0 )
+    {
+        cxt.translate( this.pointOfSpin.x, this.pointOfSpin.y );
+
+        cxt.rotate( this.rad(this.angle) );
+        cxt.drawImage(this.tile,
+            0,0,100,100,
+           - this.size +  this.diff, -this.size,
+            this.size,this.size
+        );
+    } else {
+        cxt.drawImage(this.tile,
+            0,0,100,100,
+            this.x - this.size/2, this.y - this.size/2,
+            this.size,this.size
+        );
+    }
+
+    cxt.restore();
 }
+
+Box.prototype.rad = function(angle){
+    return (Math.PI/180)*angle;
+}
+
 
 Box.prototype.update = function()
 {
@@ -72,7 +94,73 @@ Box.prototype.update = function()
         return true;
     }
 
+    if (this.isSpinning)
+    {
+        if (this.angle != this.endAngle)
+        {
+            this.angle += this.angleStep;
+        }
+        else
+        {
+            this.isSpinning = false;
+            this.angle = 0;
+            this.x = this.finalPos.x;
+            this.y = this.finalPos.y;
+            this.isFalling = true;
+        }
+
+        return true;
+    }
+
     return update;
+}
+
+Box.prototype.startSpin = function(box)
+{
+    this.isSpinning = true;
+
+    point = {};
+    this.finalPos = {};
+
+    var al = this.x - this.width/2;
+    var bl = box.x - box.width/2;
+
+    var ar = this.x + this.width/2;
+    var br = box.x + box.width/2;
+
+    l_diff = bl - al;
+    r_diff = ar - br;
+    console.log(l_diff,r_diff)
+
+    if (l_diff > r_diff){
+        
+        point.x = bl - 5;
+
+        this.angle = 360;
+        this.endAngle = 270;
+        this.angleStep = -5;
+        
+        this.finalPos.x = bl - this.width/2 - 5;
+        this.finalPos.y= this.y + l_diff;
+
+        this.diff = this.width - l_diff;
+
+    }else{
+        point.x = br+5;
+        this.angle = 0;
+        this.endAngle = 90;
+        this.angleStep = 5;
+
+        this.finalPos.x = br + this.width/2 + 5;
+        this.finalPos.y= this.y + r_diff;
+        this.diff = r_diff;
+    }
+    point.y = box.y - box.height/2 + 1;
+
+    this.pointOfSpin = point;
+
+
+
 }
 
 Box.prototype.onMagnetGrab = function()

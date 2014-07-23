@@ -7,6 +7,7 @@ var resources = [
     'Registry',
     'Arrow',
 	'Box',
+	'Platform',
 	'Lightning',
     'Grab',
 	'App'

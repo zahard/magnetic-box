@@ -22,11 +22,12 @@ function Game(width, height)
 	this.offsetLeft = this.wrapper.offsetLeft;
 
 	this.layers = {
-		back:   new Layer( $('back'), width, height, 1),
-		effect:  new Layer( $('effect'), width, height, 2),
-		grab:  new Layer( $('grab'), width, height, 4),
-		boxes:  new Layer( $('boxes'), width, height, 3),
-		controls:  new Layer( $('controls'), width, height, 8),
+		back:    new Layer( $('back'), width, height, 1),
+		statics: new Layer( $('statics'), width, height, 2),
+		effect:  new Layer( $('effect'), width, height, 3),
+		grab:    new Layer( $('grab'), width, height, 5),
+		boxes:   new Layer( $('boxes'), width, height, 4),
+		controls:  new Layer( $('controls'), width, height, 8)
 	};
 	
 	//Iages and tiles used in game
@@ -35,7 +36,9 @@ function Game(width, height)
 		grab: $('img-grab'),
 		box: $('img-box'),
 		arrows: $('img-arrows'),
-		magnet: $('img-magnet')
+		magnet: $('img-magnet'),
+		wood: $('img-wood'),
+		metal: $('img-metal')
 	};
 
 	//YOU CAN KEEP LINKS TO SOUND HERE
@@ -44,7 +47,7 @@ function Game(width, height)
 	};
 	
 
-	this.grab = new Grab(this.layers.grab, this.images.grab, 450);
+	this.grab = new Grab(this.layers.grab, this.images.grab, 550);
 
 	this.grab.lightnings = [
 		new Lightning( this.layers.effect,{x:0,y:0},{x:1,y:1}),
@@ -235,8 +238,27 @@ Game.prototype = {
 			this.width, this.height
 		);
 
+		this.drawPlatforms();
+
 	},
 
+
+	drawPlatforms: function()
+	{
+		this.platforms = [];
+
+		this.platforms.push(
+			Registry.add(new Platform('wood',400, 450,400)),
+			Registry.add(new Platform('wood',150 , 10,400)),
+			Registry.add(new Platform('metal',200 , 10,120))
+		);
+
+		for(var i = 0; i < this.platforms.length; i++)
+		{
+			Registry.get(this.platforms[i]).draw();
+		}
+
+	},
 
 	drawArrows: function()
 	{
@@ -342,14 +364,16 @@ Game.prototype = {
 	    box.x += dx;
 	    box.y += dy;
 	    
-	  	//var collision = this.detectCollision(this, new_x, new_y);
 
 	  	var collision = false;
 	  	var moveToFit = {x:0,y:0};
 
-	  	for (var i =0; i<  this.boxes.length; i++)
+	  	//Препятствия
+	  	var obstacles = this.boxes.concat(this.platforms)
+
+	  	for (var i =0; i < obstacles.length; i++)
 	  	{
-	  		var b = Registry.get(this.boxes[i]);
+	  		var b = Registry.get(obstacles[i]);
 	  		if(box === b)
 	  		{
 	  			continue;
@@ -366,6 +390,15 @@ Game.prototype = {
 	  			{
 	  				moveToFit.y = (b.y - b.height/2) - (old_y + box.height/2);
 	  				box.isFalling = false;
+
+	  				//Check maybe box should fall from corner
+
+	  				if (this.checkForSpin(box,b))
+	  				{
+	  					box.startSpin(b);
+	  					console.log('spin',moveToFit)
+	  				}
+
 	  			}
 
 	  		}
@@ -388,7 +421,7 @@ Game.prototype = {
 			//If we can we move it as much closer to collistion as we can
 	  		if( moveToFit.x || moveToFit.y )
 	  		{
-	  			this.moveBox(box,moveToFit.x, moveToFit.y)
+	  			this.moveBox(box,moveToFit.x, moveToFit.y);
 	  		}
 	  	}
 
@@ -405,6 +438,19 @@ Game.prototype = {
         }
 
 	  	return false;
+	},
+
+	checkForSpin: function(box,b)
+	{
+		if(
+			box.x < b.x - b.width/2 ||
+			box.x > b.x + b.width/2 
+		) 
+		{
+			return true;
+		}
+
+		return false;
 	},
 
 	addListeners: function()
