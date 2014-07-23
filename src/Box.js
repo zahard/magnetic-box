@@ -20,10 +20,10 @@ Box.prototype.draw = function()
 
     if(this.falling)
     {
-        var offset = this.speedY*2;
+        var offset = this.speedY * 2;
         cxt.save();
         cxt.setProperties({
-            'globalAlpha': 0.2,
+            'globalAlpha': 0.1,
             'fillStyle': '#fff'
         });
 

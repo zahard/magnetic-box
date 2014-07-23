@@ -16,6 +16,8 @@ Grab = function(cxt, tile, x)
     this.prevFrame = 0;
 
     this.isMagnetOn = false;
+
+    this.magnetTarget = null;
 }
 
 Grab.prototype.isClicked = function(mouse)
@@ -38,16 +40,27 @@ Grab.prototype.click = function(mouse)
 
     if (this.isMagnetOn)
     {
-        Registry.get('app').activateMagnet(); 
+        Registry.get('app').activateMagnet(this); 
     } else {
-        Registry.get('app').deactivateMagnet();
+        Registry.get('app').deactivateMagnet(this);
     }
     
     this.draw();
 };
 
+Grab.prototype.setTarget = function(target){
+    this.magnetTarget = target;
+    console.log(target)
+}
+
 Grab.prototype.drawLightnings = function(mouse)
 {
+    Registry.get('app').layers.effect.empty();
+
+    if (this.magnetTarget == null)
+    {
+        return;
+    }
 
     var now = new Date().getTime();
 
@@ -64,7 +77,7 @@ Grab.prototype.drawLightnings = function(mouse)
 
     var l1 = this.lightnings[0];
     var l2 = this.lightnings[1];
-    var point = {x: 500, y: 300,d:300,r:5};
+    var point = {x: this.magnetTarget.x, y: this.magnetTarget.y, d:300,r:5};
 
     l1.pa = {
         x: this.x - 40,
@@ -106,12 +119,23 @@ Grab.prototype.draw = function() {
 };
 
 Grab.prototype.update = function() {
+
+    if (this.isMagnetOn && this.magnetTarget !== null)
+    {
+        //check if magent not went too far
+        if( this.x - this.width/2  - this.magnetTarget.x > 20 ||
+            this.x + this.width/2  - this.magnetTarget.x < -20
+         )
+        {
+            Registry.get('app').layers.effect.empty();
+            this.setTarget(null);
+        }
+    }
+
     if (!this.active)
     {
         return false;
     }
-
-
 
     var x = this.x + this.speed;
     if( x <= this.width / 2 || x >= 900 - this.width / 2)

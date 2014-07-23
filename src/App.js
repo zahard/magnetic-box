@@ -160,13 +160,45 @@ Game.prototype = {
 	},
 
 
-	activateMagnet: function() {
-	    
-
+	activateMagnet: function(grab) {
+		var target = this.findMagnetTarget(grab);
+		if(target)
+		{
+			grab.setTarget(target);	
+		}
 	},
 
-	deactivateMagnet: function() {
+	deactivateMagnet: function(grab) {
 	    this.layers.effect.empty();
+	    grab.setTarget(null);
+	},
+
+	findMagnetTarget: function(grab)
+	{
+		var inBeam = [], box;
+		for (var i =0; i< this.boxes.length;i++)
+		{
+			box = Registry.get(this.boxes[i]);
+			if (box.x > grab.x - grab.width / 2 && box.x < grab.x + grab.width / 2)
+			{
+				inBeam.push(box);
+			}
+		}
+
+		if (inBeam.length)
+		{
+			inBeam.sort(function(a,b){
+				if(a.y == b.y)
+				{
+					return 0;
+				}
+				return a.y < b.y ? 1 : -1;
+			});
+
+			return inBeam[0];
+		}
+
+		return null;
 	},
 
 	draw: function()
@@ -254,7 +286,8 @@ Game.prototype = {
 	{
 		this.boxes = [];
 		this.boxes.push(
-			Registry.add(new Box(300,150,100))
+			Registry.add(new Box(300,250,100)),
+			Registry.add(new Box(600,150,70))
 		);
 	},
 

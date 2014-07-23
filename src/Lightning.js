@@ -26,7 +26,6 @@ Lightning.prototype.boom = function()
 	this.minBeam  = rand(5,10);
 	
 	this.strike(this.pa,this.pb,this.colors[0]);
-	this.strike(this.pa,this.pb,this.colors[0], this.randomOpacity());
 	this.strike(this.pa,this.pb,this.colors[1], this.randomOpacity());
 }
 
