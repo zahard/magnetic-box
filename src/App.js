@@ -83,11 +83,15 @@ function Game(width, height)
 	);
 
 
+	this.addBoxes();
+
 	this.addListeners();	
 
 	this.drawBackground();
 
 	this.draw();
+
+	this.drawBoxes();
 
 	this.animate();
 
@@ -115,6 +119,11 @@ Game.prototype = {
 		if(this.grab.isMagnetOn)
 		{
 			this.grab.drawLightnings();
+		}
+
+		if (this.boxUpdates())
+		{
+			this.drawBoxes();
 		}
 
 		requestAnimationFrame(function(){
@@ -239,6 +248,38 @@ Game.prototype = {
 		}
 
 		this.drawArrows();
+	},
+
+	addBoxes: function()
+	{
+		this.boxes = [];
+		this.boxes.push(
+			Registry.add(new Box(300,150,100))
+		);
+	},
+
+	boxUpdates: function()
+	{
+		var needRedraw = false;
+		for (var i =0; i< this.boxes.length;i++)
+		{
+			if (Registry.get(this.boxes[i]).update())
+			{
+				needRedraw = true;
+			}
+		}
+
+		return needRedraw;
+	},
+
+	drawBoxes: function()
+	{
+		this.layers.boxes.empty();
+
+		for (var i =0; i< this.boxes.length;i++)
+		{
+			Registry.get(this.boxes[i]).draw();
+		}
 	},
 
 	addListeners: function()

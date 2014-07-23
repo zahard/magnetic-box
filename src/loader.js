@@ -6,7 +6,7 @@ var resources = [
     'Circle',
     'Registry',
     'Arrow',
-	//'GrabButton',
+	'Box',
 	'Lightning',
     'Grab',
 	'App'
