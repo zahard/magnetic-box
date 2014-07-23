@@ -4,14 +4,17 @@ function Box(x,y,size) {
     this.x = x;
     this.y = y;
     this.size = size;
+    this.half = size/2;
     this.width = size;
+    this.height = size;
+
     this.tile = Registry.get('app').images.box;
 
     this.speedY = 0;
-    this.accY = 3;
-    this.maxSpeed = 24;
+    this.accY = 2;
+    this.maxSpeed = 18;
 
-    this.falling = true;
+    this.isFalling = true;
 }
 
 Box.prototype.draw = function()
@@ -50,25 +53,37 @@ Box.prototype.draw = function()
 
 Box.prototype.update = function()
 {
-    if (! this.falling) return false;
-
-
-    this.speedY += this.accY;
-    if (this.speedY >this.maxSpeed)
+    var update = false;
+    if (this.isFalling)
     {
-        this.speedY = this.maxSpeed;
+        this.speedY += this.accY;
+        if (this.speedY >this.maxSpeed)
+        {
+            this.speedY = this.maxSpeed;
+        }
+
+        Registry.get('app').moveBox(this, 0, this.speedY)
+
+        update = true;
     }
 
-    var new_y = this.y + this.speedY;
-    
-    var bottomY = new_y + this.size/2;
-
-    if (bottomY >= 600)
+    if (this.isMagniting)
     {
-        new_y = 600 - this.size/2;
-        this.falling = false;
+        return true;
     }
 
-    this.y = new_y;
-    return true;
-}  
+    return update;
+}
+
+Box.prototype.onMagnetGrab = function()
+{
+    this.isMagniting = true;
+    this.isFalling = false;
+}
+
+Box.prototype.onMagnetRelease = function()
+{
+    this.isMagniting = false;
+    this.isFalling = true;
+}
+

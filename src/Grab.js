@@ -5,13 +5,17 @@ Grab = function(cxt, tile, x)
     this.cxt = cxt;
 
     this.x = x;
-    this.y = 80;
+    this.y = 70;
 
     this.width = 120;
     this.height = 75;
     
     this.speed = 0;
     this.step = 2;
+
+    this.grabSpeed = 3;
+
+    this.grabLimit = this.y + this.height + 20;
 
     this.prevFrame = 0;
 
@@ -36,21 +40,48 @@ Grab.prototype.isClicked = function(mouse)
 
 Grab.prototype.click = function(mouse)
 {
-    this.isMagnetOn = ! this.isMagnetOn;
-
-    if (this.isMagnetOn)
+    if (! this.isMagnetOn)
     {
-        Registry.get('app').activateMagnet(this); 
+        this.activateMagnet();
     } else {
-        Registry.get('app').deactivateMagnet(this);
+        this.deactivateMagnet(); 
     }
-    
-    this.draw();
 };
+
+Grab.prototype.activateMagnet = function()
+{
+    this.isMagnetOn = true;
+    this.draw();
+
+    Registry.get('app').activateMagnet(this);
+}
+
+Grab.prototype.deactivateMagnet = function()
+{
+    this.isMagnetOn = false;
+
+    if (this.magnetTarget)
+    {
+        this.magnetTarget.onMagnetRelease()
+        this.setTarget(null);
+    }
+
+    this.drawLightnings();
+    this.draw();
+
+    Registry.get('app').deactivateMagnet(this);
+}
 
 Grab.prototype.setTarget = function(target){
     this.magnetTarget = target;
-    console.log(target)
+    if (target)
+    {
+        target.onMagnetGrab();
+    }
+}
+
+Grab.prototype.getTarget = function(){
+    return this.magnetTarget;
 }
 
 Grab.prototype.drawLightnings = function(mouse)
@@ -77,7 +108,12 @@ Grab.prototype.drawLightnings = function(mouse)
 
     var l1 = this.lightnings[0];
     var l2 = this.lightnings[1];
-    var point = {x: this.magnetTarget.x, y: this.magnetTarget.y, d:300,r:5};
+    var point = {
+        x: this.magnetTarget.x,
+        y: this.magnetTarget.y, 
+        d:300,
+        r:5
+    };
 
     l1.pa = {
         x: this.x - 40,
@@ -94,7 +130,6 @@ Grab.prototype.drawLightnings = function(mouse)
     l1.pb = point;
     l2.pb = point;
 
-    Registry.get('app').layers.effect.empty();
     l1.boom();
     l2.boom();
 }
@@ -120,33 +155,77 @@ Grab.prototype.draw = function() {
 
 Grab.prototype.update = function() {
 
+    var needUpdate = false;
+
+    if (this.active)
+    {
+        needUpdate = true;
+        var x = this.x + this.speed;
+        var arrowOffset = 50;
+        if( x <= this.width / 2 + arrowOffset || x >= 900 - this.width / 2 - arrowOffset)
+        {
+            this.stop();
+            needUpdate = false;
+        }
+        this.x = x;
+
+        Registry.get('app').updateArrowsPosition();    
+    }
+
     if (this.isMagnetOn && this.magnetTarget !== null)
     {
+        //Update magnet target
+        this.dragTarget();
+
         //check if magent not went too far
-        if( this.x - this.width/2  - this.magnetTarget.x > 20 ||
-            this.x + this.width/2  - this.magnetTarget.x < -20
+        if( this.x - this.width/2  - this.magnetTarget.x > 40 ||
+            this.x + this.width/2  - this.magnetTarget.x < -40
          )
         {
-            Registry.get('app').layers.effect.empty();
-            this.setTarget(null);
+            this.deactivateMagnet();
         }
     }
 
-    if (!this.active)
-    {
-        return false;
-    }
-
-    var x = this.x + this.speed;
-    if( x <= this.width / 2 || x >= 900 - this.width / 2)
-    {
-        this.stop();
-        return false;
-    }
-
-    this.x = x;
-    return true;
+    return needUpdate;
 }; 
+
+Grab.prototype.dragTarget = function()
+{
+    var target = this.magnetTarget;
+    if (!target)
+    {
+        return;
+    }
+
+
+    var augmentX = 0;
+    var augmentY = 0;
+
+    //Pull up box
+    if (target.y - target.size/2 - this.grabSpeed >= this.grabLimit) 
+    {
+        augmentY -= this.grabSpeed;
+    }
+
+    //Move box to side with grabber
+    if (this.speed)
+    {
+        augmentX += this.speed;
+    }
+
+    //Pull box to the center of grabber
+    if (target.x + augmentX != this.x)
+    {   
+        
+        augmentX += (this.x - target.x > 0) ? 1: -1;
+    }
+
+    if (augmentX != 0 || augmentY != 0)
+    {
+        Registry.get('app').moveBox(target,augmentX,augmentY);
+    }
+
+};
 
 Grab.prototype.setSpeed = function(speed) {
     this.speed = speed;

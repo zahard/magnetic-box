@@ -82,6 +82,7 @@ function Game(width, height)
 		Registry.add('grab', this.grab)
 	);
 
+	this.updateArrowsPosition();
 
 	this.addBoxes();
 
@@ -126,9 +127,9 @@ Game.prototype = {
 			this.drawBoxes();
 		}
 
-		requestAnimationFrame(function(){
+		setTimeout(function(){
 			this.animate();
-		}.bind(this));
+		}.bind(this), 1000/60);
 	},
 
 	click: function()
@@ -166,11 +167,19 @@ Game.prototype = {
 		{
 			grab.setTarget(target);	
 		}
+		else{
+			setTimeout(function(){
+				if(!grab.getTarget())
+				{
+					grab.deactivateMagnet();
+				}
+			},100);
+			
+		}
 	},
 
 	deactivateMagnet: function(grab) {
-	    this.layers.effect.empty();
-	    grab.setTarget(null);
+	    
 	},
 
 	findMagnetTarget: function(grab)
@@ -192,7 +201,7 @@ Game.prototype = {
 				{
 					return 0;
 				}
-				return a.y < b.y ? 1 : -1;
+				return a.y > b.y ? 1 : -1;
 			});
 
 			return inBeam[0];
@@ -235,6 +244,15 @@ Game.prototype = {
 		
 		Registry.get('l_arrow').draw();
 		Registry.get('r_arrow').draw();
+
+	},
+
+	updateArrowsPosition: function()
+	{
+		var center = this.grab.x;
+
+		Registry.get('l_arrow').moveCenterTo(center);
+		Registry.get('r_arrow').moveCenterTo(center);
 
 	},
 
@@ -286,8 +304,9 @@ Game.prototype = {
 	{
 		this.boxes = [];
 		this.boxes.push(
-			Registry.add(new Box(300,250,100)),
-			Registry.add(new Box(600,150,70))
+			Registry.add(new Box(300,500,100)),
+			Registry.add(new Box(600,150,70)),
+			Registry.add(new Box(300,150,70))
 		);
 	},
 
@@ -313,6 +332,79 @@ Game.prototype = {
 		{
 			Registry.get(this.boxes[i]).draw();
 		}
+	},
+
+	moveBox: function(box,dx,dy)
+	{
+	    var old_x = box.x;
+	    var old_y = box.y;
+
+	    box.x += dx;
+	    box.y += dy;
+	    
+	  	//var collision = this.detectCollision(this, new_x, new_y);
+
+	  	var collision = false;
+	  	var moveToFit = {x:0,y:0};
+
+	  	for (var i =0; i<  this.boxes.length; i++)
+	  	{
+	  		var b = Registry.get(this.boxes[i]);
+	  		if(box === b)
+	  		{
+	  			continue;
+	  		}
+
+			// box.x box.y box.halfSize
+	  		if (this.checkCollision(box,b,dx,dy))
+	  		{
+	  			collision = true;
+
+	  			// If box was falling check maybe box fall to another box
+	  			// and needs to be updated with correct state
+				if (dy > 0)
+	  			{
+	  				moveToFit.y = (b.y - b.height/2) - (old_y + box.height/2);
+	  				box.isFalling = false;
+	  			}
+
+	  		}
+	  	}
+
+	  	//floor
+	  	if (box.y + box.height/2 > 600)
+  		{
+  			collision = true;
+  			moveToFit.y = 600 - (old_y + box.height/2);
+  			box.isFalling = false;
+  		}
+
+
+	  	if (collision)
+	  	{
+	  		box.x = old_x;
+			box.y = old_y;
+
+			//If we can we move it as much closer to collistion as we can
+	  		if( moveToFit.x || moveToFit.y )
+	  		{
+	  			this.moveBox(box,moveToFit.x, moveToFit.y)
+	  		}
+	  	}
+
+	},
+
+	checkCollision: function(box1,box2) 
+	{	
+		if (box1.x - box1.width/2 < box2.x + box2.width/2 &&
+	        box1.x + box1.width/2 > box2.x - box2.width/2 &&
+	        box1.y - box1.height/2 < box2.y + box2.height/2 &&
+	        box1.y + box1.height/2 > box2.y - box2.height/2)
+        {
+        	return true;
+        }
+
+	  	return false;
 	},
 
 	addListeners: function()

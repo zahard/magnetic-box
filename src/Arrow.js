@@ -8,6 +8,10 @@ Arrow = function(cxt,type,tile)
     this.tile = tile;
     this.type = type;
 
+    this.width = 64;
+    this.height = 64;
+
+
     this.clickCallbacks = [];
 
     if (type === 'left')
@@ -35,7 +39,7 @@ Arrow.prototype =
             tileX * 64, tileY * 64,
             64, 64,
             this.x, this.y,
-            64, 64
+            this.width,  this.height
         )
     },
 
@@ -57,12 +61,26 @@ Arrow.prototype =
 
     isClicked: function(mouse)
     {
-        if (this.type == 'left' && mouse.x < 100 && mouse.y < 80 ||
-            this.type == 'right' && mouse.x > 800 && mouse.y < 80)
+        if (mouse.x >= this.x && mouse.x <= this.x + this.width && 
+            mouse.y >= this.y && mouse.y <= this.y + this.height)
         {
             return true;
         }
         return false;
+    },
+
+    moveCenterTo: function(center)
+    {
+        var offsetFromCenter = 40;
+        if(this.type == 'left')
+        {
+            this.x = center - this.width - offsetFromCenter;    
+        }
+        else if(this.type == 'right')
+        {
+            this.x = center + offsetFromCenter;    
+        }
+        
     }
 };
 
