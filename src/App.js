@@ -56,6 +56,17 @@ function Game(width, height)
 	
 	var leftArrow = new Arrow( this.layers.controls, 'left',  this.images.arrows);
 	leftArrow.onclick(function(arrow) {
+		if (this.grab.active)
+		{
+			this.grab.stop();
+		}
+		else
+		{
+			this.grab.moveLeft();	
+		}
+
+		return;
+
 		if (this.grab.speed >= 0)
 		{
 			this.grab.moveLeft();
@@ -68,6 +79,17 @@ function Game(width, height)
 
 	var rightArrow = new Arrow( this.layers.controls, 'right',  this.images.arrows);
 	rightArrow.onclick(function(arrow) {
+		if (this.grab.active)
+		{
+			this.grab.stop();
+		}
+		else
+		{
+			this.grab.moveRight();	
+		}
+
+		return;
+		
 		if (this.grab.speed <= 0)
 		{
 			this.grab.moveRight();
