@@ -1,7 +1,9 @@
 
 var resources = [
 	'helpers',
-	'BaseClass',
+	'Vertaxis/Vertaxis',
+	'Vertaxis/Math',
+	'Vertaxis/Shape',
 	'Layer',
 	'Registry',
 	'Collisions'

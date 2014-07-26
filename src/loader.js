@@ -1,7 +1,8 @@
 
 var resources = [
 	'helpers',
-	'BaseClass',
+	'Vertaxis/Vertaxis',
+	'Vertaxis/Math',
 	'KeyboardManager',
 	'Layer',
     'Circle',
