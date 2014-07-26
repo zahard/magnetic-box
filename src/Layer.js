@@ -44,6 +44,14 @@ Layer.prototype.setProperties = function( properties ) {
 }
 
 /**
+* Required for using in chaining
+*/
+Layer.prototype.set = function( name, val ) {
+	this.cxt[name] = val;
+	return this;
+}
+
+/**
 * Define setter and getter for all properties of original context
 */
 Layer.extendContextProperties = function ( properties ) {

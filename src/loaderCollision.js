@@ -2,16 +2,9 @@
 var resources = [
 	'helpers',
 	'BaseClass',
-	'KeyboardManager',
 	'Layer',
-    'Circle',
-    'Registry',
-    'Arrow',
-	'Box',
-	'Platform',
-	'Lightning',
-    'Grab',
-	'App'
+	'Registry',
+	'Collisions'
 ];
 
 for (var i = 0; i < resources.length; i++)

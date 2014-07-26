@@ -119,7 +119,7 @@ function Game(width, height)
 
 	this.drawBoxes();
 
-	this.animate();
+	//this.animate();
 
 }
 
@@ -270,9 +270,9 @@ Game.prototype = {
 		this.platforms = [];
 
 		this.platforms.push(
-			Registry.add(new Platform('wood',400, 450,400)),
-			Registry.add(new Platform('wood',150 , 10,400)),
-			Registry.add(new Platform('metal',200 , 10,120))
+			Registry.add(new Platform('wood',400, 450,400))
+			//Registry.add(new Platform('wood',150 , 10,400)),
+			//Registry.add(new Platform('metal',200 , 10,120))
 		);
 
 		for(var i = 0; i < this.platforms.length; i++)
@@ -348,9 +348,10 @@ Game.prototype = {
 	{
 		this.boxes = [];
 		this.boxes.push(
-			Registry.add(new Box(300,500,100)),
+			Registry.add(new Box(150,500,100)),
+			Registry.add(new Box(150,150,70)),
 			Registry.add(new Box(600,150,70)),
-			Registry.add(new Box(300,150,70))
+			Registry.add(new Box(690,150,100))
 		);
 	},
 

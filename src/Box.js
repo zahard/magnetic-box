@@ -134,24 +134,24 @@ Box.prototype.startSpin = function(box)
 
     if (l_diff > r_diff){
         
-        point.x = bl - 5;
+        point.x = bl - 3;
 
         this.angle = 360;
         this.endAngle = 270;
-        this.angleStep = -5;
+        this.angleStep = -10;
         
-        this.finalPos.x = bl - this.width/2 - 5;
+        this.finalPos.x = bl - this.width/2 - 3;
         this.finalPos.y= this.y + l_diff;
 
         this.diff = this.width - l_diff;
 
     }else{
-        point.x = br+5;
+        point.x = br+3;
         this.angle = 0;
         this.endAngle = 90;
-        this.angleStep = 5;
+        this.angleStep = 10;
 
-        this.finalPos.x = br + this.width/2 + 5;
+        this.finalPos.x = br + this.width/2 + 3;
         this.finalPos.y= this.y + r_diff;
         this.diff = r_diff;
     }
