@@ -41,6 +41,7 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 	},
 	{	
 		type: 'rect',
+		tangSpeed: 0,
 		draw: function()
 		{
 			this.cxt.beginPath();
@@ -86,10 +87,14 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 
 		},
 
-		moveTo: function(x,y)
+		moveTo: function(x,y,angle)
 		{
 			this.x = x;
 			this.y = y;
+			if (angle)
+			{
+				this.angle = angle;
+			}
 
 			this.updateVertex();
 		},
@@ -98,17 +103,51 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 		{
 			this.x += dx;
 			this.y += dy;
+			this.x = Math.round(this.x);
+			this.y = Math.round(this.y);
 
 			this.updateVertex();
 		},
 
-		updateVertex: function()
+		updateVertex: function(fixVertex)
 		{
 			this.calculateVertex();
 			if (this.angle != 0 )
 			{
-				this.translateVertex();
+				this.translateVertex(fixVertex);
 			}
+		},
+
+		rotateAroundPoint: function(angle, point, t)
+		{	
+			var fixVertex;
+			var center = Vertaxis.Math.rotatePoint({x:this.x,y:this.y}, angle, point);
+
+			this.x = center.x;
+			this.y = center.y;
+			this.angle += angle;
+
+			var min_d = 0.008;
+			var sign = Vertaxis.Math.sign(this.angle);
+			var a = Math.abs(this.angle) % Math.PI/2;
+			if( a - 0 < min_d){
+				this.angle = sign * Math.round( Math.abs(this.angle) / (Math.PI/2) ) * Math.PI/2;
+			}
+
+			for(var i = 0; i < this.vertex.length; i++)
+			{
+				//Fix this vertex
+				if(point.x == this.vertex[i].x && point.y == this.vertex[i].y)
+				{
+					fixVertex = {
+						n: i,
+						point: point
+					}
+				}
+			}
+
+			this.updateVertex(fixVertex);
+
 		},
 
 		setAngle: function(angle)
@@ -129,16 +168,21 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 				{ x: x2, y: y1},
 				{ x: x2, y: y2},
 				{ x: x1, y: y2}
-			];
+			];		
 		},
 
-		translateVertex: function()
+		translateVertex: function(fixVertex)
 		{
-			var center = {x: this.x, y: this.y};
+			var rotationPoint = {x: this.x, y: this.y};
 			var vl = this.vertex.length;
 			for(var i = 0; i < vl; i++)
 			{
-				this.vertex[i] = Vertaxis.Math.rotatePoint(this.vertex[i], this.angle, center);
+				this.vertex[i] = Vertaxis.Math.rotatePoint(this.vertex[i], this.angle, rotationPoint);
+			}
+
+			if (fixVertex)
+			{
+				this.vertex[fixVertex.n] = { x: fixVertex.point.x, y: fixVertex.point.y };
 			}
 		},
 
@@ -146,7 +190,6 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 		{
 			if (this.distanceToCenter(shape) > this.radius + shape.radius)
 			{
-				console.log('too far')
 				return false;
 			}
 
@@ -215,7 +258,12 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 
 					if (triangleSquare - square < 50) //Small gap 
 					{
-						this.lastCollision = shape;
+						console.log(triangleSquare - square, 'TRUE')
+						this.lastCollision = {
+							shape: shape,
+							impactType: (n == 0) ? 'vertex' : 'side',
+							vertex: m
+						}
 						return true;
 					}
 				}
@@ -233,7 +281,10 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 		        this.y - this.halfH < shape.y + shape.halfH &&
 		        this.y + this.halfH > shape.y - shape.halfH )
 	        {
-	        	this.lastCollision = shape;
+	        	this.lastCollision = {
+					shape: shape,
+					impactType: 'orto'					
+				}
 	        	return true;
 	        }
 			return false;
@@ -245,21 +296,25 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 			var r = circle.radius;
 
 			//First check vertexes for belonging to circle
-			var vertexesInCircle = 0;
+			var vertexesInCircle = [];
 			for (var i =0; i < this.vertex.length;i++)
 			{	
 				//If disatnce from cetner to point is less that radius
 				//this point are belong to circle
 				if( Vertaxis.Math.distance(circle, this.vertex[i]) <= r)
 				{
-					vertexesInCircle++;
+					vertexesInCircle.push(i);
 				}
 			}
 
 			//If we have vertexes in circle that mean that shapes are intersected
-			if (vertexesInCircle > 0)
+			if (vertexesInCircle.length > 0)
 			{
-				this.lastCollision = circle;
+				this.lastCollision = {
+					shape: circle,
+					impactType: 'vertex',
+					vertex:	vertexesInCircle			
+				}
 				return true;
 			}
 			
@@ -303,7 +358,11 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 					if( Vertaxis.Math.isPointOnSegment(p1,a,b) ||
 						Vertaxis.Math.isPointOnSegment(p2,a,b) )
 					{
-						this.lastCollision = circle;
+						this.lastCollision = {
+							shape: circle,
+							impactType: 'side',
+							side: [a,b]
+						}
 						return true;
 					}
 				}
@@ -316,6 +375,95 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 		distanceToCenter: function(shape)
 		{
 			return Vertaxis.Math.distance(this,shape);
+		},
+
+		impact: function()
+		{
+			var shape = this.lastCollision.shape;
+			var type = this.lastCollision.impactType;
+			
+			if (this.angle != shape.angle)
+			{
+				if( type == 'vertex')
+				{
+					//Vertex touching on side of shape
+					//We need rotate object to fit shape angle
+
+					var angle_diff = shape.angle - this.angle;
+
+					var n_angle = this.angle % (Math.PI/2);
+					var n_angle_shape = shape.angle % (Math.PI/2);
+
+					var diff = (n_angle - n_angle_shape) % (Math.PI/2)
+
+					var sign = Vertaxis.Math.sign(diff);
+					var acc = 0;
+					if(diff < Math.PI/4)
+					{
+						acc = -3 * sign;
+					}
+					else if(diff > Math.PI/4 || Math.random() > 0.5){
+						acc = 3 * sign;
+					}else{
+						acc = -3 * sign;
+					}
+					
+					this.rotationPoint = this.vertex[this.lastCollision.vertex];
+					this.tangAcc = acc;
+				}
+				else if(type == 'side')
+				{
+					var v = shape.vertex[this.lastCollision.vertex];
+					var p1,p2,a,b;
+					//Find what side this point collide
+
+					var closestSide = null
+					for(var i = 0 ; i < this.vertex.length; i++)
+					{
+						p1 = i;
+						p2 = (i < this.vertex.length - 1) ? (i + 1) : 0;
+						a = this.vertex[p1];
+						b = this.vertex[p2];
+						
+						var dist = Vertaxis.Math.disatanceToSegment(v, a, b);
+						if (!closestSide || closestSide.dist > dist)
+						{
+							closestSide = { dist: dist, side: [p1,p2]}
+						}
+					}
+
+					var impactPoint = {
+						x:v.x + 1,
+						y:v.y - 1
+					};
+					//TODO
+					this.rotationPoint = impactPoint;
+
+					var angle_diff = shape.angle - this.angle;
+
+					var n_angle = this.angle % (Math.PI/2);
+					var n_angle_shape = shape.angle % (Math.PI/2);
+
+					var diff = (n_angle - n_angle_shape) % (Math.PI/2)
+
+					var sign = Vertaxis.Math.sign(diff);
+					var acc = 0;
+					if(diff < Math.PI/4)
+					{
+						acc = -3 * sign;
+					}
+					else if(diff > Math.PI/4 || Math.random() > 0.5){
+						acc = 3 * sign;
+					}else{
+						acc = -3 * sign;
+					}
+					
+					this.tangAcc = acc;
+				}
+
+			}
+
+			
 		}
 	}
 );

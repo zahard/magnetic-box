@@ -29,6 +29,18 @@ Vertaxis.module('Vertaxis.Math', {
 	},
 
 	/**
+	 * Calculate squared distance between 2 points
+	 *
+	 * @param p1 Object Point 1
+	 * @param p2 Object Point 2
+	 * @return Number Distance
+	 */
+	distance2: function(p1, p2)
+	{
+		return  (p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y);
+	},
+
+	/**
 	 * Convert Angle Degrees to Radians
 	 * and shift angle to -90 so 0 is represent UP direction
 	 *
@@ -41,11 +53,23 @@ Vertaxis.module('Vertaxis.Math', {
 		return radians;
 	},
 
+	degree: function(radians)
+	{
+		var angle = (radians * 180) / Math.PI;
+		return angle;
+	},
+
 	/**
 	 * Rotate point by angle around center point
 	 */
 	rotatePoint: function(point, angle, center)
 	{
+		//If point and center the same
+		if (point.x == center.x && point.y == center.y)
+		{
+			return point;
+		}
+
 		var p = {
 			x: point.x - center.x,
 			y: point.y - center.y,
@@ -95,7 +119,41 @@ Vertaxis.module('Vertaxis.Math', {
 	isPointsCollinear: function(a, b, c)
 	{
 		return (b.x - a.x) * (c.y - a.y) == (c.x - a.x) * (b.y - a.y);
-	}
+	},
+
+	vectorAngle: function(a,b,degree)
+	{
+
+		 if(degree)
+		 {
+		 	angle = this.degree(angle);
+		 }
+		 return angle;
+	},
+
+	normalToLine: function(p, a, b)
+	{
+		var angle = Math.atan( (a.y - b.y)/ (a.x - b.x)  );
+		var p1 = this.rotatePoint(p, - angle, a);
+		var b1 = this.rotatePoint(b, - angle, a);
+		var c1 = {
+			x: p1.x,
+			y: b1.y
+		}
+		var c = this.rotatePoint(c1, angle, a);
+
+		return c;
+	},
+
+	disatanceToSegment: function(p, a, b)
+	{
+		var n = this.normalToLine(p, a, b);
+		return Math.min(
+			this.distance(p,n),
+			this.distance(p,a),
+			this.distance(p,b)
+		);
+	},
 
 	/*
 	def is_on(a, b, c):
@@ -116,3 +174,15 @@ def within(p, q, r):
 	*/
 
 });
+
+function drawPoint(p, i) 
+{
+	var colors = ['orange','green','blue','red'];
+	var cxt = game.layers.points;
+	cxt.beginPath();
+	cxt.set('fillStyle',colors[i])	
+	cxt.arc(p.x, p.y, 2, 0, Math.PI*2);
+	cxt.closePath();
+	cxt.fill();
+}
+

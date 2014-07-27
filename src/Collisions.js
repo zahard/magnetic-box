@@ -19,7 +19,8 @@ function Game(width, height)
 
 	this.layers = {
 		back:    new Layer( $('back'), width, height, 1),
-		boxes:   new Layer( $('boxes'), width, height, 4)
+		boxes:   new Layer( $('boxes'), width, height, 4),
+		points:   new Layer( $('points'), width, height, 5)
 	};
 
 	//'#82B0E4'
@@ -29,15 +30,15 @@ function Game(width, height)
 
 	this.boxes = [
 		//new Vertaxis.Box(c, 155, 405, 150, 150, -20),
-		new Vertaxis.Box(c, 450, 50, 100, 100, 25),	
-		new Vertaxis.Box(c, 450, 400, 600, 50, 0),
-		new Vertaxis.Triangle(c, 450, 0, 120, 180)
+		new Vertaxis.Box(c, 262, 50, 100, 100, -20),	
+		new Vertaxis.Box(c, 450, 400, 400, 50, 20),
+		//new Vertaxis.Triangle(c, 450, 0, 120, 180)
 		//Registry.add(new Box(150, 150, 70))
 	];
 
 	//402717088
 
-	window.b1 = this.boxes[2];
+	window.b1 = this.boxes[0];
 	window.b2 = this.boxes[1];
 	//window.t1 = this.boxes[2];
 	
@@ -79,11 +80,45 @@ Game.prototype = {
 			else
 			{
 				b1.moveTo(old_x,old_y);
-				this.moveClose(b1,b1.lastCollision,b1.speed);
+				this.moveClose(b1,b1.lastCollision.shape,b1.speed);
 				b1.speed = 0;
 				b1.acc = 0;
 				return true;
 			}
+		}
+
+		if (b1.tangAcc || b1.tangSpeed)
+		{
+			b1.tangSpeed += b1.tangAcc;
+			
+			if( Math.abs(b1.tangSpeed) > 10)
+			{
+				b1.tangSpeed = Vertaxis.Math.sign(b1.tangSpeed) * 10;
+			}
+
+			var speed = Vertaxis.Math.rad(b1.tangSpeed)
+
+			var old_y = b1.y;
+			var old_x = b1.x;
+			var old_angle = b1.angle;
+
+			b1.rotateAroundPoint(speed, b1.rotationPoint,true);
+
+			if( ! b1.collideWith(b1.lastCollision.shape) )
+			{
+				return true
+			}
+			else
+			{
+				console.log('Tangensial Impack found');	
+				b1.moveTo(old_x,old_y,old_angle);
+				this.rotateClose(b1, b1.lastCollision.shape, b1.tangSpeed);
+				b1.tangSpeed = 0;
+				b1.tangAcc = 0;
+				return true;
+			}
+
+			return true;
 		}
 
 		return false;
@@ -103,9 +138,42 @@ Game.prototype = {
 			}
 			else
 			{
+				console.log('Orto Impack found');
+				b1.impact(b2);
 				return true;
 			}
 		}
+	},
+
+	rotateClose: function(b1,b2,speed)
+	{
+		var old_angle = b1.angle;
+		var old_x = b1.x;
+		var old_y = b1.y;
+		var sign = Vertaxis.Math.sign(speed);
+		var speed  = Math.abs(speed);
+
+
+		for(var s = speed-1; s > 0; s -= 1)
+		{
+			var sr = Vertaxis.Math.rad(s);
+
+			b1.rotateAroundPoint(sign * sr, b1.rotationPoint);
+
+			var isCollided = b1.collideWith(b2);
+			if (isCollided)
+			{
+				//Move back to old position
+				b1.moveTo(old_x,old_y,old_angle);
+			}
+			else
+			{
+				console.log('Tangensial Impack found');
+				b1.impact(b2);
+				return true;
+			}
+		}
+
 	},
 
 	animate: function(){
