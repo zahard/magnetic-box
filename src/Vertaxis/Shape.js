@@ -256,9 +256,8 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 						);
 					}
 
-					if (triangleSquare - square < 50) //Small gap 
+					if (triangleSquare - square < 20) //Small gap 
 					{
-						console.log(triangleSquare - square, 'TRUE')
 						this.lastCollision = {
 							shape: shape,
 							impactType: (n == 0) ? 'vertex' : 'side',
@@ -417,6 +416,7 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 					var p1,p2,a,b;
 					//Find what side this point collide
 
+					/*
 					var closestSide = null
 					for(var i = 0 ; i < this.vertex.length; i++)
 					{
@@ -430,15 +430,22 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 						{
 							closestSide = { dist: dist, side: [p1,p2]}
 						}
-					}
+					}*/
 
 					var impactPoint = {
-						x:v.x + 1,
-						y:v.y - 1
+						x:v.x,
+						y:v.y 
 					};
 					//TODO
 					this.rotationPoint = impactPoint;
 
+					var acc = 3;
+					if(impactPoint.x > this.x)
+					{
+						acc = -3;
+					}
+
+					/*
 					var angle_diff = shape.angle - this.angle;
 
 					var n_angle = this.angle % (Math.PI/2);
@@ -457,7 +464,8 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 					}else{
 						acc = -3 * sign;
 					}
-					
+					*/
+
 					this.tangAcc = acc;
 				}
 

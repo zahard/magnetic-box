@@ -30,11 +30,13 @@ function Game(width, height)
 
 	this.boxes = [
 		//new Vertaxis.Box(c, 155, 405, 150, 150, -20),
-		new Vertaxis.Box(c, 262, 50, 100, 100, -20),	
-		new Vertaxis.Box(c, 450, 400, 400, 50, 20),
+		new Vertaxis.Box(c, 240, 50, 100, 100, 0),	
+		new Vertaxis.Box(c, 450, 400, 400, 50, 0),
 		//new Vertaxis.Triangle(c, 450, 0, 120, 180)
 		//Registry.add(new Box(150, 150, 70))
 	];
+
+	this.frameRate = 1000/40;
 
 	//402717088
 
@@ -80,7 +82,7 @@ Game.prototype = {
 			else
 			{
 				b1.moveTo(old_x,old_y);
-				this.moveClose(b1,b1.lastCollision.shape,b1.speed);
+				this.moveClose(b1, b1.lastCollision.shape, b1.speed);
 				b1.speed = 0;
 				b1.acc = 0;
 				return true;
@@ -110,7 +112,6 @@ Game.prototype = {
 			}
 			else
 			{
-				console.log('Tangensial Impack found');	
 				b1.moveTo(old_x,old_y,old_angle);
 				this.rotateClose(b1, b1.lastCollision.shape, b1.tangSpeed);
 				b1.tangSpeed = 0;
@@ -126,6 +127,8 @@ Game.prototype = {
 
 	moveClose: function(b1,b2,speed)
 	{
+		console.log('Plane impact found');
+
 		var old_y = b1.y;
 		var old_x = b1.x;
 
@@ -138,15 +141,18 @@ Game.prototype = {
 			}
 			else
 			{
-				console.log('Orto Impack found');
 				b1.impact(b2);
 				return true;
 			}
 		}
+
+		//If we cant move closer - leave it on its posistion
+		b1.impact(b2);
 	},
 
 	rotateClose: function(b1,b2,speed)
 	{
+		console.log('Tangensial impact found');
 		var old_angle = b1.angle;
 		var old_x = b1.x;
 		var old_y = b1.y;
@@ -168,11 +174,12 @@ Game.prototype = {
 			}
 			else
 			{
-				console.log('Tangensial Impack found');
 				b1.impact(b2);
 				return true;
 			}
 		}
+
+		b1.impact(b2);
 
 	},
 
@@ -184,7 +191,7 @@ Game.prototype = {
 		//requestAnimationFrame
 		setTimeout(function(){
 			this.animate();
-		}.bind(this),1000/45)
+		}.bind(this),this.frameRate)
 
 	},
 

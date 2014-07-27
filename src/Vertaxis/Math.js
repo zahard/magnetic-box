@@ -76,8 +76,8 @@ Vertaxis.module('Vertaxis.Math', {
 		};
 
 		var rotated = {
-			x: Math.round( p.x * Math.cos(angle) - p.y * Math.sin(angle) ) + center.x,
-			y: Math.round( p.x * Math.sin(angle) + p.y * Math.cos(angle) ) + center.y
+			x: p.x * Math.cos(angle) - p.y * Math.sin(angle) + center.x,
+			y: p.x * Math.sin(angle) + p.y * Math.cos(angle) + center.y
 		};
 
 		return rotated;
