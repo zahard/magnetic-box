@@ -1,9 +1,40 @@
 
 
+Vertaxis.define('Vertaxis.Vector', null, 
+	function Vector(x, y)
+	{
+		this.x = x;
+		this.y = y;	
+	},
+	{
+		set: function(x,y)
+		{ 
+			this.x = x;
+			this.y = y;
+		},
+
+		add: function(vector)
+		{
+			this.x += vector.x;
+			this.y += vector.y;
+		},
+
+		getMagnitude: function ()
+		{ 
+			return Math.sqrt(this.x * this.x + this.y * this.y);
+		},
+
+		getAngle: function ()
+		{
+			return Math.atan2(this.y,this.x);
+		}
+	}
+);
+
 
 Vertaxis.define('Vertaxis.Shape', null, function Shape()
 {
-	console.log('Shape init');
+	
 },
 {
 
@@ -14,7 +45,7 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 	function Boxy(cxt, x, y, width, height, angle)
 	{
 		Vertaxis.Box.superclass.apply(this,arguments);
-		console.log('Box init');
+		
 
 		this.cxt = cxt;
 		this.width = width;
@@ -481,7 +512,7 @@ Vertaxis.define('Vertaxis.Circle', Vertaxis.Box,
 	function Circle(cxt, x, y, radius, angle)
 	{
 		//Vertaxis.Circle.superclass.apply(this,arguments);
-		console.log('Circle init');
+		
 
 		this.cxt = cxt;
 		this.width = radius*2;
@@ -541,7 +572,7 @@ Vertaxis.define('Vertaxis.Triangle', Vertaxis.Box,
 	function Triangle(cxt, x, y, size, angle)
 	{
 		//Vertaxis.Circle.superclass.apply(this,arguments);
-		console.log('Triangle init');
+		
 
 		this.cxt = cxt;
 		//this.radius = radius;
