@@ -70,42 +70,54 @@ var Vertaxis = {
 	    return parent;
 	},
 
-	define2: function(namespace)
+	augment: function(receivingClass, givingClass)
+	{
+	    var methodName;
+        for (methodName in givingClass.prototype)
+        {
+            if (!receivingClass.prototype[methodName])
+            {
+                receivingClass.prototype[methodName] = givingClass.prototype[methodName];
+            }
+        }
+	},
+
+	mixin: function(constructor, mixins)
+	{
+		if (mixins.length)
+		{
+			for(var m = 0; m < mixins.length; m++)
+			{
+				this.augment(constructor, mixins[m]);
+			}
+		}
+	},
+
+	define2: function(namespace, prototype)
 	{
 		var names = namespace.split('.');
 		var className = names.pop();
 		var endpoint = this.createNamespace(window, names.join(''));
-		
-		if (arguments.length > 4)
-		{
-			//Multiple classes extension
-			constructor = arguments[arguments.length - 2];
-			prototype = arguments[arguments.length - 1];
-			parents = Array.prototype.slice.call(arguments,1,-2);
 
-			for(var n = 0; n < parents.length; n++)
-			{
-				this.extend(constructor,parents[n]);
-			}
-		}
-		else
-		{
-			parent = arguments[1]
-			constructor = arguments[2];
-			prototype = arguments[3];
-			this.extend(constructor,parent);
-		}
+		var constructor = prototype._constructor || function(){};
+		var mixins = prototype._mixins || [];
+		var parent = prototype._extends || null;
 
-		//Copy prototypes properties;
+		delete prototype._constructor;
+		delete prototype._mixins;
+		delete prototype._extends;
+
+		this.extend(constructor, parent);
+
 		for (var i in prototype)
 		{
 			constructor.prototype[i] = prototype[i];
 		}
 
-		//Apply changed constructor to namespace
+		this.mixin(constructor, mixins);
+		
 		endpoint[className] = constructor;
-
-	},
+	}
 }
 
 
@@ -115,7 +127,7 @@ Vertaxis.define('Movable',null,
 		speed:0,
 		acceleration:0,
 		move:function(){
-
+			console.log('moveee')
 		},
 		getPosition: function(){
 
@@ -136,27 +148,19 @@ Vertaxis.define('Paintable',null,
 	}
 );
 
-Vertaxis.define('Gravity',null, 
-	function Paintable(){
 
-	},
-	{
-		color: '',
-		paint:function(color)
-		{
-			this.color = color;
-		}
-	}
-);
+Vertaxis.define2('Car', 
+{
+	_mixins: [
+		Movable,
+		Paintable
+	],
 
-Vertaxis.define2('Car', Movable, Paintable, 
-	function Car(model)
+	_constructor: function Car(model)
 	{
 		this.model = model || 'TAZ';
 	},
-	{
-		engine: 'v8'
-	}
-);
+	
+	engine: 'v8'
 
-
+});

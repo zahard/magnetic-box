@@ -119,7 +119,7 @@ function Game(width, height)
 
 	this.drawBoxes();
 
-	//this.animate();
+	this.animate();
 
 }
 
