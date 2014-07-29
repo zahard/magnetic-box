@@ -28,13 +28,17 @@ function Game(width, height)
 
 	var ang = 15;
 
-	this.boxes = [
-		//new Vertaxis.Box(c, 155, 405, 150, 150, -20),
-		new Vertaxis.Box(c, 240, 50, 100, 100, 0),	
+	this.boxes = [		
+		new Vertaxis.Box(c, 240, 50, 100, 100, 0),
+
 		new Vertaxis.Box(c, 450, 400, 400, 50, 0),
-		//new Vertaxis.Triangle(c, 450, 0, 120, 180)
-		//Registry.add(new Box(150, 150, 70))
+		new Vertaxis.Box(c, 450, 605, 800, 40, 0)
 	];
+
+	this.checkBoxes  = [];
+	this.checkBoxes[0] = this.boxes[1];
+	this.checkBoxes[1] = this.boxes[2];
+
 
 	this.frameRate = 1000/40;
 
@@ -67,30 +71,42 @@ function Game(width, height)
 Game.prototype = {
 	update: function()
 	{
-
-		if (b1.speed || b1.acc)
+		var need_update = false;
+		var ignore_tang = false;
+		if (b1.speed || b1.speedX || b1.acc)
 		{
 			b1.speed += b1.acc;
 			var old_y = b1.y;
 			var old_x = b1.x;
+
+			var x_speed = b1.speedX || 0;
 			
-			b1.move(0,b1.speed);
-			if( ! b1.collideWith(b2) )
+			b1.move(x_speed, b1.speed);
+
+			for(var i = 0; i < 2; i++)
 			{
-				return true
-			}
-			else
-			{
-				b1.moveTo(old_x,old_y);
-				this.moveClose(b1, b1.lastCollision.shape, b1.speed);
-				b1.speed = 0;
-				b1.acc = 0;
-				return true;
+				var b = this.checkBoxes[i];
+				if( ! b1.collideWith(b) )
+				{
+					need_update = true;
+				}
+				else
+				{
+					b1.moveTo(old_x,old_y);
+					this.moveClose(b1, b1.lastCollision.shape, b1.speed);
+					b1.speed = 0;
+					//b1.acc = 0;
+					need_update = true;
+					break;
+				}
 			}
 		}
 
-		if (b1.tangAcc || b1.tangSpeed)
+		if ( b1.tangAcc || b1.tangSpeed)
 		{
+
+			console.log('WHY WE HERE??',b1.tangAcc, b1.tangSpeed)
+
 			b1.tangSpeed += b1.tangAcc;
 			
 			if( Math.abs(b1.tangSpeed) > 10)
@@ -108,7 +124,7 @@ Game.prototype = {
 
 			if( ! b1.collideWith(b1.lastCollision.shape) )
 			{
-				return true
+				need_update = true;
 			}
 			else
 			{
@@ -116,38 +132,36 @@ Game.prototype = {
 				this.rotateClose(b1, b1.lastCollision.shape, b1.tangSpeed);
 				b1.tangSpeed = 0;
 				b1.tangAcc = 0;
-				return true;
+				need_update = true;
 			}
 
-			return true;
+			need_update = true;
 		}
 
-		return false;
+		return need_update;
 	},
 
-	moveClose: function(b1,b2,speed)
+	moveClose: function(b1, b_to,speed)
 	{
-		console.log('Plane impact found');
-
 		var old_y = b1.y;
 		var old_x = b1.x;
 
 		for(var s = speed-1; s > 0; s--)
 		{
 			b1.move(0,s);
-			if (b1.collideWith(b2)) 
+			if (b1.collideWith(b_to)) 
 			{
 				b1.moveTo(old_x, old_y);
 			}
 			else
 			{
-				b1.impact(b2);
+				b1.impact(b_to);
 				return true;
 			}
 		}
 
 		//If we cant move closer - leave it on its posistion
-		b1.impact(b2);
+		b1.impact(b_to);
 	},
 
 	rotateClose: function(b1,b2,speed)

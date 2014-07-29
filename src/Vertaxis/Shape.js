@@ -3,30 +3,37 @@
 Vertaxis.define('Vertaxis.Vector', null, 
 	function Vector(x, y)
 	{
-		this.x = x;
-		this.y = y;	
+		this.set(x,y);
 	},
 	{
 		set: function(x,y)
 		{ 
 			this.x = x;
 			this.y = y;
+			this.update();
 		},
 
 		add: function(vector)
 		{
 			this.x += vector.x;
 			this.y += vector.y;
+			this.update();
+		},
+
+		update: function()
+		{
+			this.magnitude = Math.sqrt(this.x * this.x + this.y * this.y);
+			this.angle = Math.atan2(this.y,this.x);
 		},
 
 		getMagnitude: function ()
-		{ 
-			return Math.sqrt(this.x * this.x + this.y * this.y);
+		{
+			return this.magnitude;
 		},
 
 		getAngle: function ()
 		{
-			return Math.atan2(this.y,this.x);
+			return this.angle;
 		}
 	}
 );
@@ -128,6 +135,15 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 			}
 
 			this.updateVertex();
+		},
+
+		mv: function(x,y,a)
+		{
+			this.x += x;
+			this.y += y;
+			this.angle += Vertaxis.Math.rad(a);
+			this.updateVertex();
+			window.game.drawBoxes();
 		},
 
 		move: function(dx,dy)
@@ -306,14 +322,30 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 		collideOrthogonalWith: function(shape)
 		{
 			if (
-				this.x - this.halfW < shape.x + shape.halfW &&
-		        this.x + this.halfW > shape.x - shape.halfW &&
-		        this.y - this.halfH < shape.y + shape.halfH &&
-		        this.y + this.halfH > shape.y - shape.halfH )
+				this.x - this.halfW <= shape.x + shape.halfW &&
+		        this.x + this.halfW >= shape.x - shape.halfW &&
+		        this.y - this.halfH <= shape.y + shape.halfH &&
+		        this.y + this.halfH >= shape.y - shape.halfH )
 	        {
+
+	        	var segment = [];
+	        	if(this.x < shape.x){
+	        		if(this.y < shape.y){
+	        			segment.push({
+	        				x:this.vertex[2].x,
+	        				y:this.vertex[2].y
+	        			},
+	        			{
+	        				x:shape.vertex[0].x,
+	        				y:shape.vertex[0].y
+	        			})
+	        		}	
+	        	}
+
 	        	this.lastCollision = {
 					shape: shape,
-					impactType: 'orto'					
+					impactType: 'orto',
+					segment: segment
 				}
 	        	return true;
 	        }
@@ -409,11 +441,24 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 
 		impact: function()
 		{
+
+			this.speed = 0;
+			this.speedX = 0;
+			this.tangSpeed = 0;
+
 			var shape = this.lastCollision.shape;
 			var type = this.lastCollision.impactType;
 			
-			if (this.angle != shape.angle)
+			
+
+			//if (this.angle != shape.angle)
+			if ( Math.abs( Math.abs(this.angle % (Math.PI/2)) - Math.abs(shape.angle % (Math.PI/2) )  > Math.PI/360 ) )
 			{
+				console.log( 
+					Math.abs(this.angle % (Math.PI/2)) , Math.abs(shape.angle % (Math.PI/2)),
+					Math.abs(this.angle % (Math.PI/2)) > Math.PI/360
+				);
+
 				if( type == 'vertex')
 				{
 					//Vertex touching on side of shape
@@ -498,6 +543,28 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 					*/
 
 					this.tangAcc = acc;
+				}
+
+			}
+			else {
+				
+				
+				
+				if( this.lastCollision.segment )
+				{
+
+					if (this.x < this.lastCollision.segment[1].x &&
+						this.x < this.lastCollision.segment[0].x 
+						) 
+					{
+						var point = this.lastCollision.segment[1];
+
+						this.rotationPoint = point;
+
+						this.tangAcc = -5;
+						this.speed = 1;
+						this.speedX = -2;
+					}
 				}
 
 			}
