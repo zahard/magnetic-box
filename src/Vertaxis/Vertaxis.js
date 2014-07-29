@@ -136,6 +136,19 @@ Vertaxis.define('Paintable',null,
 	}
 );
 
+Vertaxis.define('Gravity',null, 
+	function Paintable(){
+
+	},
+	{
+		color: '',
+		paint:function(color)
+		{
+			this.color = color;
+		}
+	}
+);
+
 Vertaxis.define2('Car', Movable, Paintable, 
 	function Car(model)
 	{
