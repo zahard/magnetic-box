@@ -80,6 +80,19 @@ Game.prototype = {
 			var old_x = b1.x;
 
 			var x_speed = b1.speedX || 0;
+
+			if(typeof b1.accX !== 'undefined')
+			{
+				x_speed += b1.accX;
+				b1.speedX += b1.accX;
+				if(b1.speedX >= 0){
+					b1.accX = 0;
+					b1.speedX = 0;
+				}
+
+				x_speed = b1.speedX;
+				console.log(x_speed)
+			}
 			
 			b1.move(x_speed, b1.speed);
 
@@ -104,9 +117,6 @@ Game.prototype = {
 
 		if ( b1.tangAcc || b1.tangSpeed)
 		{
-
-			console.log('WHY WE HERE??',b1.tangAcc, b1.tangSpeed)
-
 			b1.tangSpeed += b1.tangAcc;
 			
 			if( Math.abs(b1.tangSpeed) > 10)
@@ -120,7 +130,15 @@ Game.prototype = {
 			var old_x = b1.x;
 			var old_angle = b1.angle;
 
-			b1.rotateAroundPoint(speed, b1.rotationPoint,true);
+			if(b1.rotationCenter)
+			{
+				b1.rotateAroundPoint(speed, {
+					x: b1.x - b1.rotationCenter.x,
+					y: b1.y - b1.rotationCenter.y
+				}, true);
+			}else{
+				b1.rotateAroundPoint(speed, b1.rotationPoint,true);
+			}
 
 			if( ! b1.collideWith(b1.lastCollision.shape) )
 			{
@@ -155,13 +173,13 @@ Game.prototype = {
 			}
 			else
 			{
-				b1.impact(b_to);
+				b1.impact(b_to, speed);
 				return true;
 			}
 		}
 
 		//If we cant move closer - leave it on its posistion
-		b1.impact(b_to);
+		b1.impact(b_to, speed);
 	},
 
 	rotateClose: function(b1,b2,speed)

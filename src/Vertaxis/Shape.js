@@ -166,7 +166,7 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 		},
 
 		rotateAroundPoint: function(angle, point, t)
-		{	
+		{
 			var fixVertex;
 			var center = Vertaxis.Math.rotatePoint({x:this.x,y:this.y}, angle, point);
 
@@ -439,26 +439,20 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 			return Vertaxis.Math.distance(this,shape);
 		},
 
-		impact: function()
+		impact: function(cb,speed)
 		{
 
+			this.rotationCenter  = null;
 			this.speed = 0;
 			this.speedX = 0;
 			this.tangSpeed = 0;
 
 			var shape = this.lastCollision.shape;
 			var type = this.lastCollision.impactType;
-			
-			
 
 			//if (this.angle != shape.angle)
 			if ( Math.abs( Math.abs(this.angle % (Math.PI/2)) - Math.abs(shape.angle % (Math.PI/2) )  > Math.PI/360 ) )
 			{
-				console.log( 
-					Math.abs(this.angle % (Math.PI/2)) , Math.abs(shape.angle % (Math.PI/2)),
-					Math.abs(this.angle % (Math.PI/2)) > Math.PI/360
-				);
-
 				if( type == 'vertex')
 				{
 					//Vertex touching on side of shape
@@ -475,12 +469,12 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 					var acc = 0;
 					if(diff < Math.PI/4)
 					{
-						acc = -3 * sign;
+						acc = -6 * sign;
 					}
 					else if(diff > Math.PI/4 || Math.random() > 0.5){
-						acc = 3 * sign;
+						acc = 6 * sign;
 					}else{
-						acc = -3 * sign;
+						acc = 6 * sign;
 					}
 					
 					this.rotationPoint = this.vertex[this.lastCollision.vertex];
@@ -515,10 +509,10 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 					//TODO
 					this.rotationPoint = impactPoint;
 
-					var acc = 3;
+					var acc = 6;
 					if(impactPoint.x > this.x)
 					{
-						acc = -3;
+						acc = -6;
 					}
 
 					/*
@@ -546,10 +540,8 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 				}
 
 			}
-			else {
-				
-				
-				
+			else 
+			{
 				if( this.lastCollision.segment )
 				{
 
@@ -559,11 +551,19 @@ Vertaxis.define('Vertaxis.Box', Vertaxis.Shape,
 					{
 						var point = this.lastCollision.segment[1];
 
-						this.rotationPoint = point;
+						this.rotationCenter = {
+							x: this.x - point.x,
+							y: this.y - point.y
+						}
 
-						this.tangAcc = -5;
-						this.speed = 1;
-						this.speedX = -2;
+						console.log("BOOM");
+
+						this.tangAcc = 0;
+						this.tangSpeed = -15;
+						this.speed = 0;
+						this.speedX = -10;
+						this.accX = 2;
+						
 					}
 				}
 
