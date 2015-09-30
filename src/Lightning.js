@@ -11,7 +11,7 @@ function Lightning(cxt,a,b) {
 	this.pb = {x:b.x,y:b.y,d:300,r:5};
 
 
-	this.colors = ['#fff','cyan'];
+	this.colors = ['#ffffff','cyan'];
 
 }
 
@@ -113,10 +113,13 @@ Lightning.prototype.connectDots = function(pa,pb,color,opacity,line)
 {	
 	var cxt = this.cxt;
 	cxt.save();
-	cxt.globalAlpha = opacity;
-	cxt.lineWidth = line;
 	var c = color || '#eee';
-	cxt.strokeStyle = c;
+	cxt.setProperties({
+		strokeStyle: c,
+		globalAlpha: opacity,
+		lineWidth: line
+	});
+
 	cxt.beginPath();
 	cxt.moveTo(pa.x,pa.y);
 	cxt.lineTo(pb.x,pb.y);
